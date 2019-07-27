@@ -10,7 +10,7 @@ def init_arg_parser():
     parse.add_argument('module', type=str, help='the path of your starting module')
     parse.add_argument('target', type=str, help='the searching function name or class name')
     parse.add_argument('--view', type=int, help='whether output a pdf file', default=1)
-    parse.add_argument('--path', type=str, help='the saving path for your result.pdf', default=None)
+    parse.add_argument('--path', type=str, help='the saving path for your result.pdf', default='./')
     parse.add_argument('--name', type=str, help='the pdf file name of your result', default='result')
     parse.add_argument('--ignore', type=str, action='append',
                        help="files containing these keywords should be abandoned", default=[])
@@ -22,7 +22,7 @@ def init_arg_parser():
     return parse
 
 
-if __name__ == "__main__":
+def hunt():
     parse = init_arg_parser()
     args = parse.parse_args()
 
@@ -39,3 +39,7 @@ if __name__ == "__main__":
                             engine=args.engine)
     else:
         print(calling_tree)
+
+
+if __name__ == '__main__':
+    hunt()
