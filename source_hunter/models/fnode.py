@@ -9,6 +9,7 @@ class FNode:
     def __init__(self, file_path):
         self.id = uuid4()
         self.file_path = file_path
+        self.dir_path = os.path.dirname(file_path)
         self.parser = ParserSelector.get_parser(self.file_path.split(".")[-1])
         self.content_lines = self.load(self.file_path)
         self.content_str = "\n".join(self.content_lines)

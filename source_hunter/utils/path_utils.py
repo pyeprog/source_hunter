@@ -86,3 +86,15 @@ class PathUtils:
         :return: boolean
         """
         return any(ignore_kw in file_path for ignore_kw in ignore_keywords)
+
+    @staticmethod
+    def normalize_to_abs(path):
+        """
+        change path to absolute path
+        :param path: str
+        :return: str
+        """
+        path = os.path.expanduser(path)
+        if not os.path.isabs(path):
+            return os.path.abspath(path)
+        return path

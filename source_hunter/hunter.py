@@ -2,6 +2,7 @@ import argparse
 
 from source_hunter.models.deps_tree import DepsTree
 from source_hunter.query import Query
+from source_hunter.utils.path_utils import PathUtils
 
 
 def init_arg_parser():
@@ -20,6 +21,7 @@ def init_arg_parser():
                        help='available engine: dot[default], neato, sfdp, fdp, twopi, circo, dotty, lefty',
                        default='dot')
     parse.add_argument('--not_use_gitignore', action='store_false', help='include those files specified by .gitignore')
+    parse.add_argument('--lang', type=str, help='support lang: python[defalt]', default='python')
     return parse
 
 
@@ -31,14 +33,17 @@ def hunt():
     for ignore_str in args.ignore:
         ignore.extend(ignore_str.split(','))
 
-    tree = DepsTree(args.root, ignore_keywords=ignore)
+    tree = DepsTree(PathUtils.normalize_to_abs(args.root), lang=args.lang, ignore_keywords=ignore)
     query = Query(tree)
-    calling_tree = query.find_caller(args.module, args.target)
+    calling_tree = query.find_caller(PathUtils.normalize_to_abs(args.module), args.target)
 
     if args.stdout:
         print(calling_tree)
     else:
-        calling_tree.render(name=args.name, dir_path=args.path, ues_fullname=args.fullname, keep_suffix=args.suffix,
+        calling_tree.render(name=args.name,
+                            dir_path=PathUtils.normalize_to_abs(args.path),
+                            ues_fullname=args.fullname,
+                            keep_suffix=args.suffix,
                             engine=args.engine)
 
 

@@ -31,7 +31,7 @@ class DepsTree:
     def setup_tree(self, path_fnode_dict, finder):
         for fnode in path_fnode_dict.values():
             for child_module in fnode.children_modules:
-                child_fnode = finder.fnode_by_import(child_module)
+                child_fnode = finder.fnode_by_import(child_module, fnode.dir_path)
                 if child_fnode:
                     fnode.add_child(child_fnode)
                     child_fnode.add_parent(fnode)

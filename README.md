@@ -1,6 +1,12 @@
 # Source Hunter
 A convinient tool for analysing the dependency and calling relationship of source code.
 
+while coding on large project, one may sometimes face the embarrassing situation to change the very base data models 
+or interfaces which may have chance to break a lot of things.
+There are some tools like [pydeps](https://pydeps.readthedocs.io/en/latest/) which gives you clue about what other modules
+your current module depends on(dependency graph), but it won't tell which modules will be affected if you change your
+module(calling graph). Source hunter is aiming at providing both calling and dependency graph at the same time.
+
 ## Installation
 ### Prerequisite
 1. `Graphviz` is needed for rendering
@@ -77,8 +83,9 @@ hunt . ./flask_reddit/users/models.py User --stdout
 
 ## limitation
 1. Support only python3 project (will support more language soon)
-2. Only understand absolute import (on schedule)
+2. Not Support dependency analysis for now
 
 
 ## Change log
 - v0.33: add python parser and graphviz for pdf output
+- v0.34: add support for parsing relative import of python project

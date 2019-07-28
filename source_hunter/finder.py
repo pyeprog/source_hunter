@@ -1,6 +1,8 @@
 import os
 from collections import defaultdict
 
+from source_hunter.utils.path_utils import PathUtils
+
 
 class Finder:
     def __init__(self, root_path, path_fnode_dict):
@@ -9,6 +11,19 @@ class Finder:
         self.path_fnode_dict = path_fnode_dict
 
     def setup_path_tree(self, root_path):
+        """
+        make a dict that:
+        {
+            filename_A: {},
+            filename_B: {},
+            dirname_A: {
+                    filename_C: {},
+                    filename_D: {},
+                  }
+        }
+        :param root_path: abs path of root
+        :return: nested dict that representing the directory structure
+        """
         path_tree = defaultdict(defaultdict)
         for full_name in os.listdir(root_path):
             name = full_name.split(".")[0]
@@ -20,8 +35,28 @@ class Finder:
                 )
         return path_tree
 
-    def fnode_by_import(self, import_content):
-        modules = import_content.split(".")
+    def fnode_by_import(self, import_content, cur_dir):
+        """
+        :param import_content: import statement of a python module
+        :param cur_dir: abs directory path of current file
+        :return: abs file path of the import module
+        """
+        modules = []
+        # relative import
+        dot_count = 0
+        for i in range(len(import_content)):
+            if import_content[i] == '.':
+                dot_count += 1
+            else:
+                break
+        if dot_count > 0:
+            for _ in range(dot_count - 1):
+                if cur_dir.endswith('/'):
+                    cur_dir = cur_dir[:-1]
+                cur_dir = os.path.dirname(cur_dir)
+            modules.extend([p for p in PathUtils.strip_root_path(cur_dir, self.root_path).strip().split('/') if p])
+
+        modules.extend(import_content[dot_count:].split("."))
         cur_level = self.path_tree
         for module in modules:
             if isinstance(cur_level, str):
@@ -33,7 +68,3 @@ class Finder:
             return None
         return self.path_fnode_dict.get(cur_level, None)
 
-
-if __name__ == "__main__":
-    finder = Finder("/home/pd/projects/backend", {})
-    print(finder.fnode_by_import("xkool_site.controller.residence_controller"))
