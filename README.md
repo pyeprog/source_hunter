@@ -58,7 +58,22 @@ hunt . ./model/target_model.py YourModel --stdout
 ```
 
 ## Output
+Parse [flask_reddit](https://github.com/codelucas/flask_reddit)
+```bash
+cd flask_reddit
+hunt . ./flask_reddit/users/models.py User
+hunt . ./flask_reddit/users/models.py User --stdout
 
+```
+![pdf](https://github.com/pyeprog/source_hunter/blob/master/imgs/screen.png)
+
+
+```bash
+cd flask_reddit
+hunt . ./flask_reddit/users/models.py User --stdout
+
+```
+![shell](https://github.com/pyeprog/source_hunter/blob/master/imgs/shell.png)
 
 ## limitation
 1. Support only python3 project (will support more language soon)
