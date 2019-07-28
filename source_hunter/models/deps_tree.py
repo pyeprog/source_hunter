@@ -1,9 +1,9 @@
 import os
 
-from constant import lang_suffix_mapping
-from models.fnode import FNode
-from finder import Finder
-from utils.path_utils import GitIgnoreHelper, PathUtils
+from source_hunter.constant import lang_suffix_mapping
+from source_hunter.models.fnode import FNode
+from source_hunter.finder import Finder
+from source_hunter.utils.path_utils import GitIgnoreHelper, PathUtils
 
 
 class DepsTree:

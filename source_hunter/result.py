@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from render import Renderer
+from source_hunter.render import Renderer
 
 
 class Result:

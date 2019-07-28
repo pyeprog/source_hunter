@@ -2,7 +2,7 @@ import os
 from typing import List
 from uuid import uuid4
 
-from parser import ParserSelector
+from source_hunter.parser import ParserSelector
 
 
 class FNode:

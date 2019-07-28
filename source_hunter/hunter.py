@@ -1,7 +1,7 @@
 import argparse
 
-from models.deps_tree import DepsTree
-from query import Query
+from source_hunter.models.deps_tree import DepsTree
+from source_hunter.query import Query
 
 
 def init_arg_parser():

@@ -1,6 +1,4 @@
-from typing import List
-
-from result import Result
+from source_hunter.result import Result
 
 
 class Query:

@@ -1,6 +1,6 @@
 import unittest
 
-from utils.path_utils import PathUtils
+from source_hunter.utils.path_utils import PathUtils
 
 
 class PathUtilTest(unittest.TestCase):
