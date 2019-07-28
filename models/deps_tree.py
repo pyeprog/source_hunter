@@ -35,9 +35,3 @@ class DepsTree:
                 if child_fnode:
                     fnode.add_child(child_fnode)
                     child_fnode.add_parent(fnode)
-
-
-if __name__ == "__main__":
-    tree = DepsTree("/home/pd/projects/backend")
-    usage_fnodes = tree.query("/home/pd/projects/backend/xkool_site/model/residence.py", "Residence")
-    print("\n".join([fnode.file_path for fnode in usage_fnodes]))

@@ -1,10 +1,6 @@
-from hunter import hunt
+from source_hunter import hunter
+from source_hunter.hunter import hunt
 
 __all__ = [
-    'hunt',
+    'hunter', 'hunt'
 ]
-
-__title__ = 'source_hunter'
-__version__ = '0.2'
-__author__ = 'Waylong pyeprog@foxmail.com'
-__license__ = 'MIT, see LICENSE'
