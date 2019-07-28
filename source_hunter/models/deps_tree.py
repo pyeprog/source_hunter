@@ -2,7 +2,7 @@ import os
 
 from source_hunter.constant import lang_suffix_mapping
 from source_hunter.models.fnode import FNode
-from source_hunter.finder import Finder
+from source_hunter.finder import FinderSelector
 from source_hunter.utils.path_utils import GitIgnoreHelper, PathUtils
 
 
@@ -12,7 +12,7 @@ class DepsTree:
         self.root_path = root_path
         self.suffix = lang_suffix_mapping[lang]
         self.path_fnode_dict = self.setup_path_fnode_dict(self.root_path, gitignore)
-        self.finder = Finder(self.root_path, self.path_fnode_dict)
+        self.finder = FinderSelector.get_finder(lang)(self.root_path, self.path_fnode_dict)
         self.setup_tree(self.path_fnode_dict, self.finder)
 
     def setup_path_fnode_dict(self, root_path, gitignore=True):

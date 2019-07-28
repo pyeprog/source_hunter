@@ -1,10 +1,17 @@
 import os
+from abc import ABC, abstractmethod
 from collections import defaultdict
 
 from source_hunter.utils.path_utils import PathUtils
 
 
-class Finder:
+class BaseFinder(ABC):
+    @abstractmethod
+    def fnode_by_import(self, import_content, cur_dir):
+        raise NotImplementedError("This method is not implemented")
+
+
+class PythonFinder(BaseFinder):
     def __init__(self, root_path, path_fnode_dict):
         self.root_path = root_path
         self.path_tree = self.setup_path_tree(self.root_path)
@@ -68,3 +75,20 @@ class Finder:
             return None
         return self.path_fnode_dict.get(cur_level, None)
 
+
+class FinderSelector:
+    lang_finder_dict = {
+        'python':  PythonFinder,
+        'python3': PythonFinder,
+    }
+    suffix_finder_dict = {
+        'py':  PythonFinder,
+        '.py': PythonFinder,
+    }
+
+    @classmethod
+    def get_finder(cls, lang_or_suffix):
+        if lang_or_suffix in cls.lang_finder_dict:
+            return cls.lang_finder_dict[lang_or_suffix]
+        if lang_or_suffix in cls.suffix_finder_dict:
+            return cls.suffix_finder_dict[lang_or_suffix]
