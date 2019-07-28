@@ -9,16 +9,17 @@ def init_arg_parser():
     parse.add_argument('root', type=str, help='the root path of your project')
     parse.add_argument('module', type=str, help='the path of your starting module')
     parse.add_argument('target', type=str, help='the searching function name or class name')
-    parse.add_argument('--view', type=int, help='whether output a pdf file', default=1)
+    parse.add_argument('--stdout', action='store_true', help='whether only output to stdout')
     parse.add_argument('--path', type=str, help='the saving path for your result.pdf', default='./')
     parse.add_argument('--name', type=str, help='the pdf file name of your result', default='result')
     parse.add_argument('--ignore', type=str, action='append',
                        help="files containing these keywords should be abandoned", default=[])
-    parse.add_argument('--fullname', action='store_true')
-    parse.add_argument('--suffix', action='store_true')
+    parse.add_argument('--fullname', action='store_true', help='if use full name as node label')
+    parse.add_argument('--suffix', action='store_true', help='if add suffix to node label')
     parse.add_argument('--engine', type=str,
                        help='available engine: dot[default], neato, sfdp, fdp, twopi, circo, dotty, lefty',
                        default='dot')
+    parse.add_argument('--not_use_gitignore', action='store_false', help='include those files specified by .gitignore')
     return parse
 
 
@@ -34,11 +35,11 @@ def hunt():
     query = Query(tree)
     calling_tree = query.find_caller(args.module, args.target)
 
-    if args.view:
+    if args.stdout:
+        print(calling_tree)
+    else:
         calling_tree.render(name=args.name, dir_path=args.path, ues_fullname=args.fullname, keep_suffix=args.suffix,
                             engine=args.engine)
-    else:
-        print(calling_tree)
 
 
 if __name__ == '__main__':
