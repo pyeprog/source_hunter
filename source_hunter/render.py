@@ -71,7 +71,7 @@ class Renderer:
             relationship.append((parent_simple_path, child_simple_path))
         return relationship, parents, children
 
-    def render(self, dir_path, view=True):
+    def render(self, dir_path, view=True, output_format='pdf'):
         assert os.path.isdir(dir_path), "{} is not valid directory".format(dir_path)
         full_path = os.path.join(dir_path, self.name)
-        self.dot.render(full_path, view=view)
+        self.dot.render(full_path, view=view, format=output_format)

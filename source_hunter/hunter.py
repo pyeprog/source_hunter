@@ -22,6 +22,7 @@ def init_arg_parser():
                        default='dot')
     parse.add_argument('--not_use_gitignore', action='store_false', help='include those files specified by .gitignore')
     parse.add_argument('--lang', type=str, help='support lang: python[defalt]', default='python')
+    parse.add_argument('--format', type=str, help='pdf[default], png', default='pdf')
     return parse
 
 
@@ -44,7 +45,8 @@ def hunt():
                             dir_path=PathUtils.normalize_to_abs(args.path),
                             ues_fullname=args.fullname,
                             keep_suffix=args.suffix,
-                            engine=args.engine)
+                            engine=args.engine,
+                            output_format=args.format)
 
 
 if __name__ == '__main__':

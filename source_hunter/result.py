@@ -62,6 +62,6 @@ class Result:
                               has_connector_per_level=has_connector_per_level)
         has_connector_per_level.pop()
 
-    def render(self, name, dir_path, engine, ues_fullname=False, keep_suffix=False, view=True):
+    def render(self, name, dir_path, engine, ues_fullname=False, keep_suffix=False, view=True, output_format='pdf'):
         renderer = Renderer(self, name=name, use_fullname=ues_fullname, keep_suffix=keep_suffix, engine=engine)
-        renderer.render(dir_path, view=view)
+        renderer.render(dir_path, view=view, output_format=output_format)
