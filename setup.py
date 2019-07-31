@@ -7,7 +7,7 @@ with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'README.md'),
 setup(
     name='source_hunter',
     packages=find_packages(exclude=("test",)),
-    version='0.35',
+    version='0.36',
     license='MIT',
     description='Tool for analysis of code dependency and calling relationship',
     long_description=readme,

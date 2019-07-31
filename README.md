@@ -95,3 +95,6 @@ hunt . ./flask_reddit/users/models.py User --stdout
 - v0.35: 
     - Add support for png and pdf output format
     - fix stdout mal-format
+- v0.36:
+    - Add logger
+    - refactor parser
