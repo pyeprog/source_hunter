@@ -3,6 +3,7 @@ import os
 from source_hunter.constant import lang_suffix_mapping
 from source_hunter.models.fnode import FNode
 from source_hunter.finder import FinderSelector
+from source_hunter.utils.log_utils import logger
 from source_hunter.utils.path_utils import GitIgnoreHelper, PathUtils
 
 
@@ -26,6 +27,7 @@ class DepsTree:
                             or PathUtils.is_having_ignore_keywords(path, self.ignore_keywords)):
                         continue
                     result[path] = FNode(path)
+        logger.info('scan {}, found {} fnodes'.format(self.root_path, len(result)))
         return result
 
     def setup_tree(self, path_fnode_dict, finder):
@@ -35,3 +37,4 @@ class DepsTree:
                 if child_fnode:
                     fnode.add_child(child_fnode)
                     child_fnode.add_parent(fnode)
+                    logger.verbose_info('setup_fnode_tree: {} -> {}'.format(fnode.file_path, child_fnode.file_path))

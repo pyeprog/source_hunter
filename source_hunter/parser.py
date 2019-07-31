@@ -1,6 +1,7 @@
 import re
 from typing import List
 from abc import ABC, abstractmethod
+from source_hunter.utils.log_utils import logger
 
 
 class BaseParser(ABC):
@@ -9,14 +10,20 @@ class BaseParser(ABC):
 
     @abstractmethod
     def parse_children_modules(content_lines: List[str]):
+        """
+        :param content_lines: list of str, lines of code
+        :return: list of str, those statement that is responsible for import child module
+        """
         raise NotImplementedError("This method is not implemented")
 
     @abstractmethod
-    def get_calling_func(parent_fnode, child_fnode, child_class_or_func: str):
-        raise NotImplementedError("This method is not implemented")
-
-    @abstractmethod
-    def get_calling_class(parent_fnode, child_fnode, child_class_or_func: str):
+    def get_calling_func_or_class(parent_fnode, child_fnode, child_class_or_func: str):
+        """
+        check whether there is a func or class of parent_fnode calling the target child_class_or_func of child_fnode
+        :param child_fnode: fnode
+        :param child_class_or_func: str, target class or function name
+        :return: list of str, function or class names that calling the child_class_or_func
+        """
         raise NotImplementedError("This method is not implemented")
 
 
@@ -40,24 +47,27 @@ class PythonParser(BaseParser):
         return modules
 
     @staticmethod
-    def get_calling_func(parent_fnode, child_fnode, child_class_or_func: str):
-        calling_func = None
+    def get_calling_func_or_class(parent_fnode, child_fnode, child_class_or_func: str):
         if child_fnode in parent_fnode.children_node_set:
-            pattern = re.compile("def (\w*?)\(.*?\):.*?{}".format(child_class_or_func), re.DOTALL)
-            matches = re.findall(pattern, parent_fnode.content_str)
-            if matches:
-                calling_func = matches[0]
-        return calling_func
+            func_pattern = re.compile("def (\w*?)\(.*?\):.*?{}".format(child_class_or_func), re.DOTALL)
+            func_matches = re.findall(func_pattern, parent_fnode.content_str)
+            logger.verbose_info(
+                'matching def (\w*?)\(.*?\):.*?{} in {}: {}'.format(child_class_or_func, parent_fnode.file_path,
+                                                                    func_matches))
 
-    @staticmethod
-    def get_calling_class(parent_fnode, child_fnode, child_class_or_func: str):
-        calling_class = None
-        if child_fnode in parent_fnode.children_node_set:
-            pattern = re.compile("class (\w*?):.*?{}".format(child_class_or_func), re.DOTALL)
-            matches = re.findall(pattern, parent_fnode.content_str)
+            class_pattern = re.compile("class (\w*?):.*?{}".format(child_class_or_func), re.DOTALL)
+            class_matches = re.findall(class_pattern, parent_fnode.content_str)
+            logger.verbose_info(
+                'matching class (\w*?):.*?{} in {}: {}'.format(child_class_or_func, parent_fnode.file_path,
+                                                                 class_matches))
+
+            matches = []
+            matches.extend(ma for ma in class_matches if ma)
+            matches.extend(ma for ma in func_matches if ma and ma != '__init__')
             if matches:
-                calling_class = matches[0]
-        return calling_class
+                logger.info(
+                    're.matching {} in {}: {}'.format(child_class_or_func, parent_fnode.file_path, matches))
+        return matches
 
 
 class ParserSelector:

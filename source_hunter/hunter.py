@@ -2,6 +2,7 @@ import argparse
 
 from source_hunter.models.deps_tree import DepsTree
 from source_hunter.query import Query
+from source_hunter.utils.log_utils import logger
 from source_hunter.utils.path_utils import PathUtils
 
 
@@ -23,6 +24,7 @@ def init_arg_parser():
     parse.add_argument('--not_use_gitignore', action='store_false', help='include those files specified by .gitignore')
     parse.add_argument('--lang', type=str, help='support lang: python[defalt]', default='python')
     parse.add_argument('--format', type=str, help='pdf[default], png', default='pdf')
+    parse.add_argument('--debug', type=int, help='debug level: 0=None, 1=light, 2=heavy', default=0)
     return parse
 
 
@@ -33,6 +35,8 @@ def hunt():
     ignore = []
     for ignore_str in args.ignore:
         ignore.extend(ignore_str.split(','))
+
+    logger.set_debug(args.debug)
 
     tree = DepsTree(PathUtils.normalize_to_abs(args.root), lang=args.lang, ignore_keywords=ignore)
     query = Query(tree)
