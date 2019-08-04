@@ -42,5 +42,8 @@ class FNode:
     def parse_children_modules(self):
         return self._parser.parse_children_modules(self.content_str)
 
-    def get_calling_item(self, child_class_or_func: str):
-        return self._parser.get_calling_item(self.content_str, child_class_or_func)
+    def get_caller(self, class_or_func: str):
+        return self._parser.get_caller(self.content_str, class_or_func)
+
+    def get_deps(self, class_or_func: str):
+        return self._parser.get_deps(self.content_str, class_or_func)

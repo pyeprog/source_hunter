@@ -15,12 +15,21 @@ class BaseParser(ABC):
         raise NotImplementedError("This method is not implemented")
 
     @abstractmethod
-    def get_calling_item(parent_code_str: str, child_class_or_func: str):
+    def get_caller(code_str: str, class_or_func: str):
         """
         check whether there is a func or class of parent_fnode calling the target child_class_or_func of child_fnode
-        :param parent_code_str: str, code string of parent fnode
-        :param child_class_or_func: str, target class or function name
+        :param code_str: str, code string of parent fnode
+        :param class_or_func: str, target class or function name
         :return: list of str, function or class names that calling the child_class_or_func
+        """
+        raise NotImplementedError("This method is not implemented")
+
+    @abstractmethod
+    def get_deps(code_str: str, class_or_func: str):
+        """
+        get dependent modules of the class or function specified by parameter
+        :param class_or_func: str, class or function name
+        :return: list of str
         """
         raise NotImplementedError("This method is not implemented")
 
@@ -94,18 +103,18 @@ class PythonParser(BaseParser):
         return i // 4
 
     @staticmethod
-    def get_calling_item(parent_code_str: str, child_class_or_func: str):
-        parent_code_structure = PythonParser.parse_structure(parent_code_str)
+    def get_caller(code_str: str, class_or_func: str):
+        code_structure = PythonParser.parse_structure(code_str)
         result = []
-        PythonParser._get_calling_item_helper(parent_code_structure, child_class_or_func, result)
-        logger.verbose_info('searching {} found {}'.format(child_class_or_func, result))
+        PythonParser._get_caller_helper(code_structure, class_or_func, result)
+        logger.verbose_info('searching {} found {}'.format(class_or_func, result))
         return result
 
     @staticmethod
-    def _get_calling_item_helper(code_structure, class_or_func, result_container):
+    def _get_caller_helper(code_structure, class_or_func, result_container):
         result = {'func_call': [], 'class_call': [], 'variable_call': [], 'other_call': []}
         for statement, sub_structure in code_structure.items():
-            result_of_sub = PythonParser._get_calling_item_helper(sub_structure, class_or_func, result_container)
+            result_of_sub = PythonParser._get_caller_helper(sub_structure, class_or_func, result_container)
             found = any(result_of_sub['func_call'] + result_of_sub['class_call'] + result_of_sub['variable_call'] +
                         result_of_sub['other_call'])
             if found:
@@ -125,6 +134,37 @@ class PythonParser(BaseParser):
                     result['variable_call'].extend(statement_parts[0].split(','))
                 else:
                     result['other_call'].append(statement)
+        return result
+
+    @staticmethod
+    def get_deps(code_str: str, class_or_func: str):
+        modules = PythonParser.parse_children_modules(code_str)
+        code_structure = PythonParser.parse_structure(code_str)
+        deps_modules = []
+        for statement, sub_structure in code_structure.items():
+            if class_or_func in statement:
+                for module in modules:
+                    usages = PythonParser._get_deps_helper(sub_structure, module)
+                    deps_modules.extend(usages)
+        return list(set(deps_modules))
+
+    @staticmethod
+    def _get_deps_helper(code_structure, module):
+        result = []
+        mod = module.split('.')[-1]
+        # module usage in 'module(...)' form
+        direct_use_pattern = re.compile('{}\(.*?\)'.format(mod))
+        # module usage in 'module.sub(...)' form
+        use_sub_pattern = re.compile('{}([.\w_]*)\(.*?\)'.format(mod))
+
+        for statement, sub_structure in code_structure.items():
+            direct_usages = re.findall(direct_use_pattern, statement)
+            if direct_usages:
+                result.append(module)
+            sub_mods = re.findall(use_sub_pattern, statement)
+            for sub_mod in sub_mods:
+                result.append(module + sub_mod)
+            result.extend(PythonParser._get_deps_helper(sub_structure, module))
         return result
 
 

@@ -83,8 +83,9 @@ hunt . ./flask_reddit/users/models.py User --stdout
 
 ## limitation
 1. Support only python3 project (will support more language soon)
-2. python import should on same line and not support \ sign for now
-3. Not Support dependency analysis for now
+2. Not support `import a as b` or `from a import b as c`
+3. Not support dependency analysis for now
+
 
 
 ## Change log
