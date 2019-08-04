@@ -15,7 +15,7 @@ class Renderer:
         self.use_fullname = use_fullname
         self.keep_suffix = keep_suffix
         self.result = result
-        self.dot = Digraph(name, engine=engine, graph_attr={'rankdir': 'LR'})
+        self.dot = Digraph(name, engine=engine, graph_attr={'rankdir': 'RL'})
         self.dot.attr(size='8,5')
         self.dot.node_attr.update(color='lightblue2', style='filled')
         self.build_graph()
@@ -33,8 +33,8 @@ class Renderer:
     @staticmethod
     def render_helper(result, use_fullname=False, keep_suffix=False):
         relationship = []
-        parents = set()
-        children = set()
+        callee = set()
+        caller = set()
         duplicate_filenames = set()
         if not use_fullname:
             filename_fnode_dict = {}
@@ -51,25 +51,25 @@ class Renderer:
                     duplicate_filenames.add(child_filename)
 
         for parent_fnode, child_fnode in result.relationship:
-            parent_simple_path = result._remove_path_duplicate(
+            callee_simple_path = result._remove_path_duplicate(
                 parent_fnode.file_path, result.root_path
             )
-            child_simple_path = result._remove_path_duplicate(
+            caller_simple_path = result._remove_path_duplicate(
                 child_fnode.file_path, result.root_path
             )
             if not use_fullname:
-                if os.path.basename(parent_simple_path) not in duplicate_filenames:
-                    parent_simple_path = os.path.basename(parent_fnode.file_path)
-                if os.path.basename(child_simple_path) not in duplicate_filenames:
-                    child_simple_path = os.path.basename(child_fnode.file_path)
+                if os.path.basename(callee_simple_path) not in duplicate_filenames:
+                    callee_simple_path = os.path.basename(parent_fnode.file_path)
+                if os.path.basename(caller_simple_path) not in duplicate_filenames:
+                    caller_simple_path = os.path.basename(child_fnode.file_path)
             if not keep_suffix:
-                parent_simple_path = parent_simple_path.split('.')[0]
-                child_simple_path = child_simple_path.split('.')[0]
+                callee_simple_path = callee_simple_path.split('.')[0]
+                caller_simple_path = caller_simple_path.split('.')[0]
 
-            # parents.add(parent_simple_path)
-            # children.add(child_simple_path)
-            relationship.append((parent_simple_path, child_simple_path))
-        return relationship, parents, children
+            callee.add(callee_simple_path)
+            caller.add(caller_simple_path)
+            relationship.append((caller_simple_path, callee_simple_path))
+        return relationship, callee, caller
 
     def render(self, dir_path, view=True, output_format='pdf'):
         assert os.path.isdir(dir_path), "{} is not valid directory".format(dir_path)

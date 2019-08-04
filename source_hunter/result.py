@@ -8,20 +8,20 @@ class Result:
         self.relationship = []
         self.root_path = root_path
 
-    def add(self, parent_fnode, child_fnode):
-        self.relationship.append((parent_fnode, child_fnode))
+    def add_calling_relation(self, callee_fnode, caller_fnode):
+        self.relationship.append((callee_fnode, caller_fnode))
 
     def __repr__(self):
         """
         show the relationship in text format
         :return: str
         """
-        children = set(map(lambda pair: pair[1], self.relationship))
-        parent = set(map(lambda pair: pair[0], self.relationship))
-        root = next(filter(lambda p: p not in children, parent))
+        caller = set(map(lambda pair: pair[1], self.relationship))
+        callee = set(map(lambda pair: pair[0], self.relationship))
+        root = next(filter(lambda p: p not in caller, callee))
         relation = defaultdict(list)
-        for parent, child in self.relationship:
-            relation[parent].append(child)
+        for callee, child in self.relationship:
+            relation[callee].append(child)
 
         result = []
         self._repr_helper(root, relation, result, has_next_sibling=False, has_connector_per_level=[])

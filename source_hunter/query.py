@@ -10,15 +10,15 @@ class Query:
         self.deps_tree = deps_tree
 
     def find_caller_query_helper(self, module_path, class_or_func, seen, result):
-        start_fnode = self.deps_tree.path_fnode_dict.get(module_path, None)
-        if start_fnode and start_fnode not in seen:
-            seen.add(start_fnode)
-            for parent_fnode in start_fnode.parents:
-                calling_items = parent_fnode.get_calling_item(class_or_func)
+        callee_fnode = self.deps_tree.path_fnode_dict.get(module_path, None)
+        if callee_fnode and callee_fnode not in seen:
+            seen.add(callee_fnode)
+            for caller_fnode in callee_fnode.parents:
+                calling_items = caller_fnode.get_calling_item(class_or_func)
                 if calling_items:
-                    result.add(start_fnode, parent_fnode)
+                    result.add_calling_relation(callee_fnode, caller_fnode)
                 for calling_item in calling_items:
-                    self.find_caller_query_helper(parent_fnode.file_path, calling_item, seen, result)
+                    self.find_caller_query_helper(caller_fnode.file_path, calling_item, seen, result)
         return result
 
     def find_caller(self, module_path, class_or_func):
