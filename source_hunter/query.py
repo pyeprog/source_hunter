@@ -14,7 +14,7 @@ class Query:
         if start_fnode and start_fnode not in seen:
             seen.add(start_fnode)
             for parent_fnode in start_fnode.parents:
-                calling_items = parent_fnode.get_calling_func_or_class(start_fnode, class_or_func)
+                calling_items = parent_fnode.get_calling_item(class_or_func)
                 if calling_items:
                     result.add(start_fnode, parent_fnode)
                 for calling_item in calling_items:

@@ -2,22 +2,20 @@ import re
 from typing import List
 from abc import ABC, abstractmethod
 from source_hunter.utils.log_utils import logger
+from collections import OrderedDict
 
 
 class BaseParser(ABC):
     @abstractmethod
-    def __init__(self, code_str: str):
-        raise NotImplementedError("This method is not implemented")
-
-    @abstractmethod
-    def parse_children_modules(self):
+    def parse_children_modules(code_str: str):
         """
+        :param code_str: str, code string
         :return: list of str, those statement that is responsible for import child module
         """
         raise NotImplementedError("This method is not implemented")
 
     @abstractmethod
-    def get_calling_func_or_class(self, parent_code_str: str, child_class_or_func: str):
+    def get_calling_item(parent_code_str: str, child_class_or_func: str):
         """
         check whether there is a func or class of parent_fnode calling the target child_class_or_func of child_fnode
         :param parent_code_str: str, code string of parent fnode
@@ -28,15 +26,12 @@ class BaseParser(ABC):
 
 
 class PythonParser(BaseParser):
-    def __init__(self, code_str: str):
-        self.code_str = code_str
-        # TODO: add a code structure parsing method
-
-    def parse_children_modules(self):
+    @staticmethod
+    def parse_children_modules(code_str: str):
         modules = []
         # parse import in 'from example import ...' form
         import_pattern = re.compile('from ([\w.]+) import (\([\w, \n]+\)|[\w_, ]+\n)')
-        matches = re.findall(import_pattern, self.code_str)
+        matches = re.findall(import_pattern, code_str)
         for match in matches:
             pathes = match[0].strip().split('.')
             for mod in match[1].strip().replace('\n', '').split(','):
@@ -47,7 +42,7 @@ class PythonParser(BaseParser):
 
         # parse import in 'import ...' form
         import_pattern = re.compile('[^ \w_]import ([\w_, ]+)')
-        matches = re.findall(import_pattern, self.code_str)
+        matches = re.findall(import_pattern, code_str)
         for match in matches:
             for single_mod in match.split(','):
                 if 'as' in single_mod:
@@ -55,9 +50,82 @@ class PythonParser(BaseParser):
                 modules.append(single_mod.strip())
         return modules
 
-    def get_calling_func_or_class(self, parent_code_str: str, child_class_or_func: str):
-        # TODO: rectify this function
-        pass
+    @staticmethod
+    def parse_structure(code_str: str):
+        code_lines = code_str.split('\n')
+        return PythonParser._parse_structure_helper(code_lines, 0)
+
+    @staticmethod
+    def _parse_structure_helper(code_lines: List[str], indent_level: int):
+        same_indent_lines = []
+        for i, code_line in enumerate(code_lines):
+            if len(code_line) == 0:
+                continue
+            try:
+                cur_indent_level = PythonParser.count_indent_level(code_line)
+            except ValueError:
+                continue
+            if cur_indent_level == indent_level:
+                same_indent_lines.append(i)
+
+        code_structure = OrderedDict()
+        for i, line_num in enumerate(same_indent_lines):
+            if i < len(same_indent_lines) - 1:
+                if line_num + 1 < same_indent_lines[i + 1]:
+                    code_structure[code_lines[line_num]] = PythonParser._parse_structure_helper(
+                        code_lines[line_num + 1: same_indent_lines[i + 1]], indent_level + 1)
+                else:
+                    code_structure[code_lines[line_num]] = {}
+            else:
+                if line_num + 1 < len(code_lines):
+                    code_structure[code_lines[line_num]] = PythonParser._parse_structure_helper(
+                        code_lines[line_num + 1:], indent_level + 1)
+                else:
+                    code_structure[code_lines[line_num]] = {}
+        return code_structure
+
+    @staticmethod
+    def count_indent_level(line: str):
+        i = 0
+        while i < len(line) and line[i] == ' ':
+            i += 1
+        if not (i / 4).is_integer():
+            raise ValueError('indented space is not multiple of 4')
+        return i // 4
+
+    @staticmethod
+    def get_calling_item(parent_code_str: str, child_class_or_func: str):
+        parent_code_structure = PythonParser.parse_structure(parent_code_str)
+        result = []
+        PythonParser._get_calling_item_helper(parent_code_structure, child_class_or_func, result)
+        logger.verbose_info('searching {} found {}'.format(child_class_or_func, result))
+        return result
+
+    @staticmethod
+    def _get_calling_item_helper(code_structure, class_or_func, result_container):
+        result = {'func_call': [], 'class_call': [], 'variable_call': [], 'other_call': []}
+        for statement, sub_structure in code_structure.items():
+            result_of_sub = PythonParser._get_calling_item_helper(sub_structure, class_or_func, result_container)
+            found = any(result_of_sub['func_call'] + result_of_sub['class_call'] + result_of_sub['variable_call'] +
+                        result_of_sub['other_call'])
+            if found:
+                if 'def' in statement:
+                    func_name = re.findall('def ([\w_]+)\([\w \t,_]*\):[\t ]*', statement)
+                    result['func_call'].extend(func_name)
+                    result_container.extend(func_name)
+                elif 'class' in statement:
+                    class_name = re.findall('class ([\w_]+).*:', statement)
+                    result['class_call'].extend(class_name)
+                    result_container.extend(class_name)
+                else:
+                    result['other_call'].extend(result_of_sub['other_call'])
+            if class_or_func in statement:
+                if '=' in statement and '==' not in statement and '<=' not in statement and '>=' not in statement:
+                    statement_parts = statement.split('=')
+                    result['variable_call'].extend(statement_parts[0].split(','))
+                else:
+                    result['other_call'].append(statement)
+        return result
 
 
 class ParserSelector:
