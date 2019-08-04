@@ -44,8 +44,8 @@ class PythonParser(BaseParser):
         for match in matches:
             pathes = match[0].strip().split('.')
             for mod in match[1].strip().replace('\n', '').split(','):
-                if 'as' in mod:
-                    mod = mod.split('as')[0]
+                if ' as ' in mod:
+                    mod = mod.split(' as ')[0]
                 single_mod = pathes + [mod.strip()]
                 modules.append('.'.join(single_mod))
 
@@ -54,8 +54,8 @@ class PythonParser(BaseParser):
         matches = re.findall(import_pattern, code_str)
         for match in matches:
             for single_mod in match.split(','):
-                if 'as' in single_mod:
-                    single_mod = single_mod.split('as')[0]
+                if ' as ' in single_mod:
+                    single_mod = single_mod.split(' as ')[0]
                 modules.append(single_mod.strip())
         return modules
 
@@ -142,7 +142,7 @@ class PythonParser(BaseParser):
         code_structure = PythonParser.parse_structure(code_str)
         deps_modules = []
         for statement, sub_structure in code_structure.items():
-            if class_or_func in statement:
+            if any([name for name in class_or_func.split('.') if name and name in statement]):
                 for module in modules:
                     usages = PythonParser._get_deps_helper(sub_structure, module)
                     deps_modules.extend(usages)
@@ -153,9 +153,11 @@ class PythonParser(BaseParser):
         result = []
         mod = module.split('.')[-1]
         # module usage in 'module(...)' form
-        direct_use_pattern = re.compile('{}\(.*?\)'.format(mod))
+        direct_use_pattern = re.compile('{}\('.format(mod))
         # module usage in 'module.sub(...)' form
-        use_sub_pattern = re.compile('{}([.\w_]*)\(.*?\)'.format(mod))
+        use_sub_pattern = re.compile('{}([.\w_]*)\('.format(mod))
+        # module usage in 'class A(module)' form
+        super_class_pattern = re.compile('class [\w_]+\({}\)'.format(mod))
 
         for statement, sub_structure in code_structure.items():
             direct_usages = re.findall(direct_use_pattern, statement)
@@ -164,6 +166,9 @@ class PythonParser(BaseParser):
             sub_mods = re.findall(use_sub_pattern, statement)
             for sub_mod in sub_mods:
                 result.append(module + sub_mod)
+            super_class_usages = re.findall(super_class_pattern, statement)
+            if super_class_usages:
+                result.append(module)
             result.extend(PythonParser._get_deps_helper(sub_structure, module))
         return result
 

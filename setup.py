@@ -7,7 +7,7 @@ with open(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'README.md'),
 setup(
     name='source_hunter',
     packages=find_packages(exclude=("test",)),
-    version='0.36',
+    version='0.40',
     license='MIT',
     description='Tool for analysis of code dependency and calling relationship',
     long_description=readme,
@@ -28,6 +28,7 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
     ],
     entry_points={
         'console_scripts': ['hunt=source_hunter.hunter:hunt']

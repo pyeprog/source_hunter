@@ -1,3 +1,5 @@
+import os
+from queue import Queue
 from source_hunter.result import Result
 from source_hunter.utils.log_utils import logger
 
@@ -23,11 +25,44 @@ class Query:
 
     def find_caller(self, module_path, class_or_func):
         result = Result(self.deps_tree.root_path)
+        return self._find_caller(module_path, class_or_func, result)
+
+    def _find_caller(self, module_path, class_or_func, result=None):
+        if not result:
+            result = Result(self.deps_tree.root_path)
         self._find_caller_query_helper(module_path, class_or_func, set(), result)
         logger.info('result contains {} relationship'.format(len(result.relationship)))
         return result
 
     def find_deps(self, module_path, class_or_func):
-        caller_fnode = self.deps_tree.path_fnode_dict.get(module_path, None)
-        if caller_fnode:
-            deps = caller_fnode.get_deps(class_or_func)
+        result = Result(self.deps_tree.root_path)
+        return self._find_deps(module_path, class_or_func, result)
+
+    def _find_deps(self, module_path, class_or_func, result=None):
+        if not result:
+            result = Result(self.deps_tree.root_path)
+        start_fnode = self.deps_tree.path_fnode_dict.get(module_path, None)
+        if start_fnode:
+            stack = []
+            for dep in start_fnode.get_deps(class_or_func):
+                stack.append((dep, start_fnode))
+            while stack:
+                dep, caller_fnode = stack.pop()
+                dep_fnode = self.deps_tree.finder.fnode_by_import(dep, caller_fnode.dir_path)
+                if dep_fnode:
+                    result.add_calling_relation(dep_fnode, caller_fnode)
+                    module_name = os.path.basename(dep_fnode.file_path).split('.')[0]
+                    dep_name_idx = dep.find(module_name)
+                    if dep_name_idx > 0:
+                        dep_class_or_func = dep[dep_name_idx + len(module_name):]
+                        if dep_class_or_func.startswith('.'):
+                            dep_class_or_func = dep_class_or_func[1:]
+                        for dep in dep_fnode.get_deps(dep_class_or_func):
+                            stack.append((dep, dep_fnode))
+        return result
+
+    def find_caller_and_deps(self, module_path, class_or_func):
+        result = Result(self.deps_tree.root_path)
+        self._find_deps(module_path, class_or_func, result)
+        self._find_caller(module_path, class_or_func, result)
+        return result

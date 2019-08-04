@@ -84,18 +84,18 @@ hunt . ./flask_reddit/users/models.py User --stdout
 ## limitation
 1. Support only python3 project (will support more language soon)
 2. Not support `import a as b` or `from a import b as c`
-3. Not support dependency analysis for now
-
-
 
 ## Change log
-- v0.33: 
-    - Add python parser and graphviz for pdf output
-- v0.34: 
-    - Add support for parsing relative import of python project
-- v0.35: 
-    - Add support for png and pdf output format
-    - fix stdout mal-format
+- v0.40:
+    - Add support for dependency graph
+    - refactor python parser
 - v0.36:
     - Add logger
     - refactor parser
+- v0.35: 
+    - Add support for png and pdf output format
+    - fix stdout mal-format
+- v0.34: 
+    - Add support for parsing relative import of python project
+- v0.33: 
+    - Add python parser and graphviz for pdf output

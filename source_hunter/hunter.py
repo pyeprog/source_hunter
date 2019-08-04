@@ -11,6 +11,7 @@ def init_arg_parser():
     parse.add_argument('root', type=str, help='the root path of your project')
     parse.add_argument('module', type=str, help='the path of your starting module')
     parse.add_argument('target', type=str, help='the searching function name or class name')
+    parse.add_argument('--mode', type=str, help='the searching mode: call[default], dep, mix', default='call')
     parse.add_argument('--stdout', action='store_true', help='whether only output to stdout')
     parse.add_argument('--path', type=str, help='the saving path for your result.pdf', default='./')
     parse.add_argument('--name', type=str, help='the pdf file name of your result', default='result')
@@ -40,17 +41,22 @@ def hunt():
 
     tree = DepsTree(PathUtils.normalize_to_abs(args.root), lang=args.lang, ignore_keywords=ignore)
     query = Query(tree)
-    calling_tree = query.find_caller(PathUtils.normalize_to_abs(args.module), args.target)
+    if args.mode == 'call':
+        result = query.find_caller(PathUtils.normalize_to_abs(args.module), args.target)
+    elif args.mode == 'dep':
+        result = query.find_deps(PathUtils.normalize_to_abs(args.module), args.target)
+    else:
+        result = query.find_caller_and_deps(PathUtils.normalize_to_abs(args.module), args.target)
 
     if args.stdout:
-        print(calling_tree)
+        print(result)
     else:
-        calling_tree.render(name=args.name,
-                            dir_path=PathUtils.normalize_to_abs(args.path),
-                            ues_fullname=args.fullname,
-                            keep_suffix=args.suffix,
-                            engine=args.engine,
-                            output_format=args.format)
+        result.render(name=args.name,
+                      dir_path=PathUtils.normalize_to_abs(args.path),
+                      ues_fullname=args.fullname,
+                      keep_suffix=args.suffix,
+                      engine=args.engine,
+                      output_format=args.format)
 
 
 if __name__ == '__main__':
