@@ -1,5 +1,4 @@
 import os
-from queue import Queue
 from source_hunter.result import Result
 from source_hunter.utils.log_utils import logger
 

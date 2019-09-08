@@ -39,7 +39,7 @@ class PythonParser(BaseParser):
     def parse_children_modules(code_str: str):
         modules = []
         # parse import in 'from example import ...' form
-        import_pattern = re.compile('from ([\w.]+) import (\([\w, \n]+\)|[\w_, ]+\n)')
+        import_pattern = re.compile(r'from ([\w.]+) import (\([\w, \n]+\)|[\w_, ]+\n)')
         matches = re.findall(import_pattern, code_str)
         for match in matches:
             pathes = match[0].strip().split('.')
@@ -50,7 +50,7 @@ class PythonParser(BaseParser):
                 modules.append('.'.join(single_mod))
 
         # parse import in 'import ...' form
-        import_pattern = re.compile('[^ \w_]import ([\w_, ]+)')
+        import_pattern = re.compile(r'[^ \w_]import ([\w_, ]+)')
         matches = re.findall(import_pattern, code_str)
         for match in matches:
             for single_mod in match.split(','):
@@ -119,11 +119,11 @@ class PythonParser(BaseParser):
                         result_of_sub['other_call'])
             if found:
                 if 'def' in statement:
-                    func_name = re.findall('def ([\w_]+)\([\w \t,_]*\):[\t ]*', statement)
+                    func_name = re.findall(r'def ([\w_]+)\([\w \t,_]*\):[\t ]*', statement)
                     result['func_call'].extend(func_name)
                     result_container.extend(func_name)
                 elif 'class' in statement:
-                    class_name = re.findall('class ([\w_]+).*:', statement)
+                    class_name = re.findall(r'class ([\w_]+).*:', statement)
                     result['class_call'].extend(class_name)
                     result_container.extend(class_name)
                 else:
@@ -153,11 +153,11 @@ class PythonParser(BaseParser):
         result = []
         mod = module.split('.')[-1]
         # module usage in 'module(...)' form
-        direct_use_pattern = re.compile('{}\('.format(mod))
+        direct_use_pattern = re.compile(r'{}\('.format(mod))
         # module usage in 'module.sub(...)' form
-        use_sub_pattern = re.compile('{}([.\w_]*)\('.format(mod))
+        use_sub_pattern = re.compile(r'{}([.\w_]*)\('.format(mod))
         # module usage in 'class A(module)' form
-        super_class_pattern = re.compile('class [\w_]+\({}\)'.format(mod))
+        super_class_pattern = re.compile(r'class [\w_]+\({}\)'.format(mod))
 
         for statement, sub_structure in code_structure.items():
             direct_usages = re.findall(direct_use_pattern, statement)
